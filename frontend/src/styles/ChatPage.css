@@ -1,0 +1,262 @@
+/* General Styles */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #1a1a2e;
+  color: #ececec;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Root Layout */
+.rootLayout header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #161625;
+  padding: 2px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.rootLayout .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rootLayout .logo img {
+  width: 50px;
+  height: 44px;
+}
+
+.rootLayout .logo span {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #00aaff;
+}
+
+.rootLayout .user-profile {
+  font-size: 1em;
+  color: #fff;
+}
+
+/* New Chat Button */
+.new-chat {
+  /* margin: 20px auto; */
+  display: block;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.new-chat:hover {
+  background-color: #0056b3;
+}
+
+/* Chat Wrapper */
+.chat-wrapper {
+  display: flex;
+  flex: 1;
+  gap: 5px;
+  padding: 5px;
+  overflow: hidden;
+  height: 600px;
+  /* padding: 0; */
+}
+
+.chat-list {
+  flex: 1;
+  background-color: #252545;
+  border-radius: 10px;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.chat-list .title {
+  font-weight: bold;
+  font-size: 1.0em;
+  color: #00aaff;
+  margin-bottom: 10px;
+}
+
+.chat-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 10px;
+  margin-bottom: 5px;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.chat-list button:hover {
+  background-color: #3a3a5e;
+}
+
+/* Chat Container */
+.chat-container {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  /* background-color: #1e1e2f; */
+  border-radius: 10px;
+  padding: 10px;
+
+  padding-right: 0;
+  /* padding-top: 0;
+  padding-bottom: 0; */
+  height: 100%;
+}
+
+.messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 10px;
+}
+
+.message {
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 1em;
+}
+
+.user {
+  align-self: flex-end;
+  background-color: #3e3e52;
+  color: white;
+  
+  border-radius: 20px;
+  padding: 15px 20px;
+
+  text-align: end;
+
+  /* width: 500px; */
+  max-width: 500px;
+}
+
+.model {
+  align-self: flex-start;
+  background-color: #444;
+  color: white;
+}
+
+/* Input Container */
+.input-container {
+  display: flex; /* Asegúrate de que sea flex */
+  align-items: center;  /* Alinea verticalmente los elementos */
+  justify-content: center;
+  /* background-color: #2c2c3b; */
+  border-radius: 10px;
+  padding: 25px;
+  width: 100%;
+  height: 20%;
+}
+
+.input-container form{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  /* background-color: #1a1a2e; */
+  color: #000000;
+  border: 1px solid #444;
+  border-radius: 5px;
+  outline: none;
+  background-color: #2c2c3b;
+  width: 70%;
+  height: 100%;
+
+  max-height: calc(5 * 1.2em);
+
+  border-radius: 60px;
+
+  textarea {
+    width: 100%;
+    font-size: 16px; /* Tamaño de fuente */
+    font-family: 'Arial', sans-serif;
+    outline: none;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: none;
+    /* background-color: #2c2c3b; */
+    color: #fff;
+    
+    resize: none;
+    max-height: calc(5 * 1.2em); /* Limita la altura a 10 líneas (ajusta 1.2em según tu fuente) */
+    overflow-y: auto; /* Muestra la barra de desplazamiento vertical cuando sea necesario */
+
+    transition: height 0.2s ease; /* Suaviza el cambio de altura */
+  }
+
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #474753;
+    /* background: none; */
+    border: none;
+    border-radius: 50%;
+    /* padding: 10px; */
+    cursor: pointer;
+    display: flex;
+    width: 7%;
+    height: 100%;
+    color: white;
+  }
+
+}
+
+
+.input-container button:hover {
+  background-color: #b3b3b3;
+}
+
+.input-container button img {
+  width: 36px;
+  height: 36px;
+}
+
+
+/* Estilos para la barra de desplazamiento en navegadores WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px; /* Ancho de la barra de desplazamiento */
+}
+
+/* Fondo de la barra de desplazamiento */
+::-webkit-scrollbar-track {
+  background: transparent; /* Fondo transparente */
+}
+
+/* Estilo del "thumb" (parte que se mueve) */
+::-webkit-scrollbar-thumb {
+  background: #888; /* Color del "thumb" */
+  border-radius: 4px; /* Bordes redondeados */
+}
+
+/* Efecto al pasar el mouse sobre el "thumb" */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color más oscuro al pasar el mouse */
+}
+
+/* Estilos para navegadores Firefox */
+* {
+  scrollbar-width: thin; /* Barra de desplazamiento delgada */
+  scrollbar-color: #888 transparent; /* Color del "thumb" y fondo */
+}
