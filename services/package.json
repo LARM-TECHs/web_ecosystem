@@ -5,6 +5,7 @@
   "dependencies": {
     "@langchain/core": "^0.3.44",
     "@langchain/ollama": "^0.2.0",
+    "axios": "^1.10.0",
     "express": "^5.1.0",
     "langchain": "^0.3.21",
     "react-router-dom": "^7.5.0"
