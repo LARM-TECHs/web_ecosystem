@@ -8,7 +8,7 @@ import {
   import { BiPlus, BiUser, BiSend, BiSolidUserCircle } from 'react-icons/bi';
   import { MdOutlineArrowLeft, MdOutlineArrowRight } from 'react-icons/md';
   import '../styles/ChatPage.css';
-  import { getChatList, getChatHistory, sendMessage } from '../services/api';
+  import { getChatList, getChatHistory, sendMessage } from '../../services/api';
   
   function ChatNew() {
     const [text, setText] = useState('');

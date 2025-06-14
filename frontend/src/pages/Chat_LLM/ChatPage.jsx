@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { sendMessage, /*getChatHistory, /*getChatList*/ logoutUser } from '../services/api';
+import { sendMessage, /*getChatHistory, /*getChatList*/ logoutUser } from '../../services/api';
 
 import logo from '../assets/logo256x256.png'
 import '../styles/ChatPage.css'
