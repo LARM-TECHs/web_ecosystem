@@ -1,9 +1,9 @@
 import { Routes, Route } from "react-router-dom"
 
 // import Login from './pages/LoginPage.jsx'
-import Chat from './pages/ChatPage.jsx'
+import Chat from './pages/ChatLLM/ChatPage.jsx'
 // import ChatNew from './pages/Chat.jsx'
-import LoginNew from './pages/Login.jsx'
+import LoginNew from './pages/ChatLLM/Login.jsx'
 
 
 function App() {

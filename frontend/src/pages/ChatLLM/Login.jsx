@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { loginUser } from '../../services/api';
-import '../styles/nstyles.css';
+import '../../styles/nstyles.css';
 import { useNavigate } from 'react-router-dom'; // Necesario para redirigir
 
 const LoginNew = () => {
