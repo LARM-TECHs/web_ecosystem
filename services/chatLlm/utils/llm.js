@@ -117,3 +117,5 @@ function iniciarBucleEntrada() {
 
 // Iniciar el bucle de entrada
 iniciarBucleEntrada();
+
+export { configureLlm, chatWithLlm };

@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000'; // Ajusta la URL si es necesario
+const API_URL = 'http://localhost:3000'; // Ajusta la URL si es necesario
 
 export const registerUser = async (userData) => {
     try {

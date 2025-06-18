@@ -13,3 +13,4 @@
 /.env.test.local
 /.env.production.local
 # Ignorar archivos de compilación
+**/node_modules
