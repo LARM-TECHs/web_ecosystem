@@ -1,3 +1,4 @@
+// notas-estudiantes-service/models/Asignatura.js
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
@@ -12,6 +13,8 @@ const Asignatura = sequelize.define('asignatura', {
         allowNull: false
     }
 }, {
+    schema: process.env.DB_SCHEMA, // Ensure schema is set here
+    tableName: 'asignatura',     // Explicitly set table name
     timestamps: false
 });
 
