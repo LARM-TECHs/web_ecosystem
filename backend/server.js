@@ -1,24 +1,25 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
-const QRCode = require('qrcode');
-const crypto = require('crypto');
-import { connectDB, syncModels } from './config/db.js';
-import routes from './routes/comedor-routes.js';
-import dotenv from 'dotenv';
+const dotenv = require('dotenv');
+
+const connectDB = require('./config/db');
+const comedorRoutes = require('./routes/comedor-routes');
+const errorHandler = require('./middleware/errorHandler');
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Carga las variables de entorno
-dotenv.config();
+app.use(cors());
+app.use(express.json());
 
-// Inicializar base de datos y servidor
-initDB().then(() => {
+app.use('/api', comedorRoutes);
+
+app.use(errorHandler);
+
+connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Servidor ejecutándose en puerto ${PORT}`);
   });
 });
-
-module.exports = app;
