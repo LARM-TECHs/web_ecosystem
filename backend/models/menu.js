@@ -1,0 +1,33 @@
+// models/Menu.js
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
+
+class Menu extends sequelize.Model {}
+
+Menu.init({
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
+  },
+  breakfast: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  lunch: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  dinner: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  }
+}, {
+  sequelize,
+  modelName: 'Menu',
+  tableName: 'menus',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
+});
+
+module.exports = Menu;
