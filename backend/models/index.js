@@ -1,10 +1,10 @@
 // models/index.js - Para definir las relaciones
 const sequelize = require('../config/db');
 const User = require('./User');
-const Student = require('./Student');
-const Menu = require('./Menu');
-const QRCode = require('./QRCode');
-const Staff = require('./Staff');
+const Student = require('./student');
+const Menu = require('./menu');
+const QRCode = require('./qrcode');
+const Staff = require('./staff');
 
 // Definir relaciones
 Student.hasMany(QRCode, { 
