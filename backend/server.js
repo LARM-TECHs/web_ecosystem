@@ -8,15 +8,6 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configuración de la base de datos PostgreSQL
-const pool = new Pool({
-  user: process.env.DB_USER || 'u0_a295',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'comedor',
-  password: process.env.DB_PASSWORD || '',
-  port: process.env.DB_PORT || 5432,
-});
-
 // Crear tablas si no existen
 const initDB = async () => {
   try {
@@ -69,9 +60,6 @@ const initDB = async () => {
     console.error('Error creando tablas:', err);
   }
 };
-
-
-
 // Inicializar base de datos y servidor
 initDB().then(() => {
   app.listen(PORT, () => {
