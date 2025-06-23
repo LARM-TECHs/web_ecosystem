@@ -4,9 +4,14 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const QRCode = require('qrcode');
 const crypto = require('crypto');
+import routes from './routes/comedor-routes.js';
+import dotenv from 'dotenv';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Carga las variables de entorno
+dotenv.config();
 
 // Crear tablas si no existen
 const initDB = async () => {
