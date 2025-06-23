@@ -4,6 +4,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const QRCode = require('qrcode');
 const crypto = require('crypto');
+import { connectDB, syncModels } from './config/db.js';
 import routes from './routes/comedor-routes.js';
 import dotenv from 'dotenv';
 
