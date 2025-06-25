@@ -1,8 +1,8 @@
 // models/Menu.js
-const { DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-class Menu extends sequelize.Model {}
+class Menu extends Model {}
 
 Menu.init({
   date: {
