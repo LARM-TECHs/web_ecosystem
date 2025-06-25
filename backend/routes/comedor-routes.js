@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const QRCode = require('qrcode');
 const crypto = require('crypto');
-const { authenticateUser, authorizeRoles } = require('../middleware/auth');
+const { authenticateUser, authorizeRoles } = require('../middleware/auth-middleware');
 
 // --- Rutas para estudiantes ---
 
