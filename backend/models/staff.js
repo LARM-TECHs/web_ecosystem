@@ -1,8 +1,8 @@
 // models/Staff.js
-const { DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-class Staff extends sequelize.Model {}
+class Staff extends Model {}
 
 Staff.init({
   staff_id: {
