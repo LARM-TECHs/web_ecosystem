@@ -2,9 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-const connectDB = require('./config/db');
+const connectDB = require('./models');
 const comedorRoutes = require('./routes/comedor-routes');
-const errorHandler = require('./middleware/errorHandler');
+const errorHandler = require('./middleware/error-handler');
 
 dotenv.config();
 
