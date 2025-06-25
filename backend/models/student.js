@@ -1,8 +1,8 @@
 // models/Student.js
-const { DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-class Student extends sequelize.Model {}
+class Student extends Model {}
 
 Student.init({
   student_id: {
