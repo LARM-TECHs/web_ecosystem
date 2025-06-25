@@ -1,27 +1,29 @@
-// models/index.js - Para definir las relaciones
 const sequelize = require('../config/db');
+
+// Importar modelos
 const User = require('./User');
-const Student = require('./student');
 const Menu = require('./menu');
 const QRCode = require('./qrcode');
 const Staff = require('./staff');
+const Student = require('./student');
 
-// Definir relaciones
-Student.hasMany(QRCode, { 
-  foreignKey: 'student_id', 
-  sourceKey: 'student_id' 
-});
+// Asociaciones (si existen relaciones entre modelos, defínelas aquí)
+Student.belongsTo(User, { foreignKey: 'user_id' });
+Staff.belongsTo(User, { foreignKey: 'user_id' });
+QRCode.belongsTo(Student, { foreignKey: 'student_id' });
+Menu.hasMany(QRCode, { foreignKey: 'menu_id' });
 
-QRCode.belongsTo(Student, { 
-  foreignKey: 'student_id', 
-  targetKey: 'student_id' 
-});
-
-module.exports = {
-  sequelize,
-  User,
-  Student,
-  Menu,
-  QRCode,
-  Staff
+// Función para conectar y sincronizar la base de datos
+const connectDB = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ Conexión con la base de datos establecida.');
+    await sequelize.sync(); // Puedes usar { force: true } para desarrollo
+    console.log('🛠️ Modelos sincronizados correctamente.');
+  } catch (error) {
+    console.error('❌ Error al conectar con la base de datos:', error);
+    process.exit(1);
+  }
 };
+
+module.exports = connectDB;
