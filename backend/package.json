@@ -13,6 +13,8 @@
     "pg": "^8.11.3",
     "qrcode": "^1.5.3",
     "crypto": "^1.0.1"
+    "bcrypt":
+    "sequelize":
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
