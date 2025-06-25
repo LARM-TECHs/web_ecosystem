@@ -26,4 +26,4 @@ const connectDB = async () => {
   }
 };
 
-module.exports = connectDB; // 👈 importante
+module.exports = connectDB;
