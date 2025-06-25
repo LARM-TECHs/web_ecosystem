@@ -7,23 +7,23 @@ const QRCode = require('./qrcode');
 const Staff = require('./staff');
 const Student = require('./student');
 
-// Asociaciones (si existen relaciones entre modelos, defínelas aquí)
+// Relaciones entre modelos
 Student.belongsTo(User, { foreignKey: 'user_id' });
 Staff.belongsTo(User, { foreignKey: 'user_id' });
 QRCode.belongsTo(Student, { foreignKey: 'student_id' });
 Menu.hasMany(QRCode, { foreignKey: 'menu_id' });
 
-// Función para conectar y sincronizar la base de datos
+// Función de conexión
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Conexión con la base de datos establecida.');
-    await sequelize.sync(); // Puedes usar { force: true } para desarrollo
-    console.log('🛠️ Modelos sincronizados correctamente.');
+    console.log('✅ Conexión a la base de datos exitosa');
+    await sequelize.sync();
+    console.log('📦 Modelos sincronizados');
   } catch (error) {
-    console.error('❌ Error al conectar con la base de datos:', error);
+    console.error('❌ Error al conectar a la base de datos:', error);
     process.exit(1);
   }
 };
 
-module.exports = connectDB;
+module.exports = connectDB; // 👈 importante
