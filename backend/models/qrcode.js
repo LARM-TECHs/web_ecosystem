@@ -1,8 +1,8 @@
 // models/QRCode.js
-const { DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-class QRCode extends sequelize.Model {}
+class QRCode extends Model {}
 
 QRCode.init({
   student_id: {
