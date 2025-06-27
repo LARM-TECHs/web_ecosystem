@@ -6,13 +6,13 @@ const { Op } = require('sequelize');
 const { authenticateUser, authorizeRoles } = require('../middleware/auth-middleware');
 
 // Importar modelos
-const { Menu, QRCode, Student, Staff, User } = require('../models');
+const { Menu, Student, Staff, QRCode, User } = require('../models');
 
 // --- Rutas para estudiantes ---
 
 router.get('/student/:studentId/qr',
-  authenticateUser,
-  authorizeRoles(['student']),
+  //authenticateUser,
+  //authorizeRoles(['student']),
   async (req, res) => {
     try {
       const { studentId } = req.params;
@@ -52,7 +52,7 @@ router.get('/student/:studentId/qr',
 );
 
 router.get('/menu',
-  authenticateUser,
+//  authenticateUser,
   async (req, res) => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -79,7 +79,7 @@ router.get('/menu',
 );
 
 router.get('/menu/:date',
-  authenticateUser,
+  //authenticateUser,
   async (req, res) => {
     try {
       const { date } = req.params;
@@ -166,8 +166,8 @@ router.post('/staff/validate-qr',
 );
 
 router.get('/staff/menus',
-  authenticateUser,
-  authorizeRoles(['admin']),
+  //authenticateUser,
+ // authorizeRoles(['admin']),
   async (req, res) => {
     try {
       const menus = await Menu.findAll({
@@ -184,8 +184,8 @@ router.get('/staff/menus',
 );
 
 router.post('/staff/menu',
-  authenticateUser,
-  authorizeRoles(['admin']),
+  //authenticateUser,
+  //authorizeRoles(['admin']),
   async (req, res) => {
     try {
       const { date, breakfast, lunch, dinner } = req.body;
@@ -226,8 +226,8 @@ router.post('/staff/menu',
 );
 
 router.delete('/staff/menu/:date',
-  authenticateUser,
-  authorizeRoles(['admin']),
+//  authenticateUser,
+//  authorizeRoles(['admin']),
   async (req, res) => {
     try {
       const { date } = req.params;
