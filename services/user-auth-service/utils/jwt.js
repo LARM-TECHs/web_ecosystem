@@ -1,3 +1,4 @@
+// user-auth-service/utils/jwt.js
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
@@ -6,7 +7,7 @@ dotenv.config();
 /**
  * Genera un JSON Web Token (JWT) para un usuario dado.
  * El token incluye el ID, correo y rol del usuario, y expira según la configuración.
- * @param {object} usuario - Objeto de usuario con id_usuario, correo y rol.
+ * @param {object} usuario - Objeto de usuario con id, correo y rol (debe tener 'id' como PK).
  * @returns {string} El token JWT generado.
  */
 export const generateToken = (usuario) => {
@@ -15,9 +16,21 @@ export const generateToken = (usuario) => {
         throw new Error('Configuración de JWT incompleta.');
     }
 
+    // --- CORRECCIÓN AQUÍ ---
+    // Preferimos 'usuario.id' si es la clave primaria por defecto de Sequelize.
+    // Si tu modelo usa 'id_usuario' como nombre de la PK, 'usuario.id_usuario' sería correcto.
+    // Usamos un fallback para mayor robustez.
+    const userId = usuario.id || usuario.id_usuario; // Asegura que se capture el ID correcto
+
+    // Asegurarse de que el ID no sea nulo antes de firmar el token
+    if (!userId) {
+        console.error('Error: ID de usuario no disponible para generar el token. Revise la estructura del modelo Usuario.');
+        throw new Error('ID de usuario faltante para JWT.');
+    }
+
     return jwt.sign(
         {
-            id: usuario.id_usuario,
+            id: userId, // Usar el ID del usuario obtenido correctamente
             correo: usuario.correo,
             rol: usuario.rol
         },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import NavEst from "../../components/notasEstudiantes/NavEst";
+import NavEst from "./components/NavEst";
 // import LogoutButton from "../components/LogoutButton";
 
 const HomeEst = () => {

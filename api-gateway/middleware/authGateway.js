@@ -29,7 +29,10 @@ export const authenticateGateway = (req, res, next) => {
         req.headers['x-user-rol'] = decoded.rol;
 
         // Remove the Authorization header to prevent downstream services from re-verifying
-        delete req.headers.authorization;
+        // delete req.headers.authorization;
+        if (!req.path.startsWith('/comedor')) {
+            delete req.headers.authorization;
+        }
 
         next();
     } catch (err) {

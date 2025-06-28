@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Layout from "../../components/notasEstudiantes/Layout";
+import Layout from "./components/Layout";
 import { useNavigate } from "react-router-dom";
 
 const Estudiantes = () => {
