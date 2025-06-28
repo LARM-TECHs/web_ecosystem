@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiService } from "../api/axios";
+import { apiService } from "../api/apiService";
 
 function StaffMenu() {
   const [menus, setMenus] = useState([]);
@@ -11,7 +11,6 @@ function StaffMenu() {
     dinner: ''
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchMenus();
@@ -19,54 +18,16 @@ function StaffMenu() {
 
   const fetchMenus = async () => {
     try {
-      setLoading(true);
       const data = await apiService.getAllMenus();
       setMenus(data);
     } catch (err) {
-      console.error("Error:", err);
-      setError("Error al cargar los menús");
-    } finally {
-      setLoading(false);
+      console.error("Error fetching menus:", err);
     }
   };
 
-  const handleSaveMenu = async (menuData) => {
-    if (!menuData.date) {
-      setError('La fecha es requerida');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await apiService.createOrUpdateMenu(menuData);
-      await fetchMenus();
-      setNewMenu({ date: '', breakfast: '', lunch: '', dinner: '' });
-      setEditingMenu(null);
-      setError('');
-      alert('Menú guardado exitosamente');
-    } catch (err) {
-      console.error("Error:", err);
-      setError("Error al guardar el menú");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteMenu = async (date) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este menú?')) {
-      try {
-        await apiService.deleteMenu(date);
-        await fetchMenus();
-        alert('Menú eliminado exitosamente');
-      } catch (err) {
-        console.error("Error:", err);
-        setError("Error al eliminar el menú");
-      }
-    }
-  };
-
-  const handleChange = (e, isEditing = false) => {
+  const handleInputChange = (e, isEditing = false) => {
     const { name, value } = e.target;
+    
     if (isEditing) {
       setEditingMenu({ ...editingMenu, [name]: value });
     } else {
@@ -74,71 +35,79 @@ function StaffMenu() {
     }
   };
 
-  const startEdit = (menu) => {
-    setEditingMenu({
-      date: menu.date,
-      breakfast: menu.breakfast || '',
-      lunch: menu.lunch || '',
-      dinner: menu.dinner || ''
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const menuData = editingMenu || newMenu;
+    
+    if (!menuData.date) {
+      alert('La fecha es requerida');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await apiService.saveMenu(menuData);
+      setNewMenu({ date: '', breakfast: '', lunch: '', dinner: '' });
+      setEditingMenu(null);
+      fetchMenus();
+      alert('Menú guardado exitosamente');
+    } catch (err) {
+      console.error("Error saving menu:", err);
+      alert('Error guardando menú');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (date) => {
+    if (confirm('¿Estás seguro de que quieres eliminar este menú?')) {
+      try {
+        await apiService.deleteMenu(date);
+        fetchMenus();
+        alert('Menú eliminado exitosamente');
+      } catch (err) {
+        console.error("Error deleting menu:", err);
+        alert('Error eliminando menú');
+      }
+    }
+  };
+
+  const handleEdit = (menu) => {
+    setEditingMenu(menu);
     setNewMenu({ date: '', breakfast: '', lunch: '', dinner: '' });
   };
 
-  const cancelEdit = () => {
+  const handleCancelEdit = () => {
     setEditingMenu(null);
     setNewMenu({ date: '', breakfast: '', lunch: '', dinner: '' });
   };
 
+  const getCurrentDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
   const inputStyle = {
-    width: "100%",
-    padding: "8px",
-    margin: "5px 0",
-    border: "1px solid #ddd",
-    borderRadius: "3px"
-  };
-
-  const textareaStyle = {
-    ...inputStyle,
-    minHeight: "60px",
-    resize: "vertical"
-  };
-
-  const buttonStyle = {
-    padding: "8px 15px",
-    margin: "5px",
-    border: "none",
-    borderRadius: "3px",
-    cursor: "pointer"
+    width: '100%',
+    padding: '8px',
+    margin: '5px 0',
+    border: '1px solid #ddd',
+    borderRadius: '3px'
   };
 
   const currentMenu = editingMenu || newMenu;
-  const isEditing = !!editingMenu;
 
   return (
     <div>
-      <h2>Gestión de Menús del Comedor</h2>
-      
-      {error && (
-        <div style={{
-          color: "red",
-          padding: "10px",
-          backgroundColor: "#ffe6e6",
-          borderRadius: "3px",
-          marginBottom: "20px"
-        }}>
-          {error}
-        </div>
-      )}
+      <h2>Gestión de Menús</h2>
 
       {/* Formulario para crear/editar menú */}
-      <div style={{
-        border: "1px solid #ddd",
-        padding: "20px",
-        marginBottom: "30px",
-        borderRadius: "5px",
-        backgroundColor: "#f8f9fa"
+      <form onSubmit={handleSubmit} style={{ 
+        border: '1px solid #ddd', 
+        padding: '20px', 
+        marginBottom: '30px', 
+        borderRadius: '5px' 
       }}>
-        <h3>{isEditing ? 'Editar Menú' : 'Crear Nuevo Menú'}</h3>
+        <h3>{editingMenu ? 'Editar Menú' : 'Crear Nuevo Menú'}</h3>
         
         <div>
           <label>Fecha:</label>
@@ -146,132 +115,139 @@ function StaffMenu() {
             type="date"
             name="date"
             value={currentMenu.date}
-            onChange={(e) => handleChange(e, isEditing)}
+            onChange={(e) => handleInputChange(e, !!editingMenu)}
             style={inputStyle}
-            disabled={isEditing} // No permitir cambiar fecha al editar
+            min={getCurrentDate()}
+            required
           />
         </div>
-
+        
         <div>
           <label>Desayuno:</label>
           <textarea
             name="breakfast"
-            value={currentMenu.breakfast}
-            onChange={(e) => handleChange(e, isEditing)}
+            value={currentMenu.breakfast || ''}
+            onChange={(e) => handleInputChange(e, !!editingMenu)}
+            style={{ ...inputStyle, height: '80px' }}
             placeholder="Describe el menú del desayuno..."
-            style={textareaStyle}
           />
         </div>
-
+        
         <div>
           <label>Almuerzo:</label>
           <textarea
             name="lunch"
-            value={currentMenu.lunch}
-            onChange={(e) => handleChange(e, isEditing)}
+            value={currentMenu.lunch || ''}
+            onChange={(e) => handleInputChange(e, !!editingMenu)}
+            style={{ ...inputStyle, height: '80px' }}
             placeholder="Describe el menú del almuerzo..."
-            style={textareaStyle}
           />
         </div>
-
+        
         <div>
           <label>Cena:</label>
           <textarea
             name="dinner"
-            value={currentMenu.dinner}
-            onChange={(e) => handleChange(e, isEditing)}
+            value={currentMenu.dinner || ''}
+            onChange={(e) => handleInputChange(e, !!editingMenu)}
+            style={{ ...inputStyle, height: '80px' }}
             placeholder="Describe el menú de la cena..."
-            style={textareaStyle}
           />
         </div>
-
-        <div style={{ marginTop: "15px" }}>
+        
+        <div style={{ marginTop: '15px' }}>
           <button
-            onClick={() => handleSaveMenu(currentMenu)}
+            type="submit"
             disabled={loading}
             style={{
-              ...buttonStyle,
-              backgroundColor: loading ? "#ccc" : "#28a745",
-              color: "white"
+              padding: '10px 20px',
+              backgroundColor: loading ? '#ccc' : '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '3px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              marginRight: '10px'
             }}
           >
-            {loading ? "Guardando..." : (isEditing ? "Actualizar Menú" : "Crear Menú")}
+            {loading ? 'Guardando...' : (editingMenu ? 'Actualizar Menú' : 'Crear Menú')}
           </button>
           
-          {isEditing && (
+          {editingMenu && (
             <button
-              onClick={cancelEdit}
+              type="button"
+              onClick={handleCancelEdit}
               style={{
-                ...buttonStyle,
-                backgroundColor: "#6c757d",
-                color: "white"
+                padding: '10px 20px',
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '3px',
+                cursor: 'pointer'
               }}
             >
               Cancelar
             </button>
           )}
         </div>
-      </div>
+      </form>
 
       {/* Lista de menús existentes */}
       <div>
-        <h3>Menús Registrados</h3>
-        {loading && menus.length === 0 ? (
-          <p>Cargando menús...</p>
-        ) : menus.length === 0 ? (
-          <p>No hay menús registrados aún.</p>
+        <h3>Menús Existentes</h3>
+        {menus.length === 0 ? (
+          <p>No hay menús registrados</p>
         ) : (
           <div>
             {menus.map((menu) => (
               <div key={menu.id} style={{
-                border: "1px solid #ddd",
-                padding: "15px",
-                marginBottom: "15px",
-                borderRadius: "5px",
-                backgroundColor: "white"
+                border: '1px solid #ddd',
+                padding: '15px',
+                marginBottom: '15px',
+                borderRadius: '5px'
               }}>
-                <div style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "10px"
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  marginBottom: '10px'
                 }}>
                   <h4>📅 Menú del {menu.date}</h4>
                   <div>
                     <button
-                      onClick={() => startEdit(menu)}
+                      onClick={() => handleEdit(menu)}
                       style={{
-                        ...buttonStyle,
-                        backgroundColor: "#007bff",
-                        color: "white"
+                        padding: '5px 10px',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        marginRight: '5px'
                       }}
                     >
-                      ✏️ Editar
+                      Editar
                     </button>
                     <button
-                      onClick={() => handleDeleteMenu(menu.date)}
+                      onClick={() => handleDelete(menu.date)}
                       style={{
-                        ...buttonStyle,
-                        backgroundColor: "#dc3545",
-                        color: "white"
+                        padding: '5px 10px',
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer'
                       }}
                     >
-                      🗑️ Eliminar
+                      Eliminar
                     </button>
                   </div>
                 </div>
                 
                 <div>
-                  <p><strong>🌅 Desayuno:</strong> {menu.breakfast || "No especificado"}</p>
-                  <p><strong>🍽️ Almuerzo:</strong> {menu.lunch || "No especificado"}</p>
-                  <p><strong>🌙 Cena:</strong> {menu.dinner || "No especificado"}</p>
+                  <p><strong>🍳 Desayuno:</strong> {menu.breakfast || 'No especificado'}</p>
+                  <p><strong>🍽️ Almuerzo:</strong> {menu.lunch || 'No especificado'}</p>
+                  <p><strong>🌙 Cena:</strong> {menu.dinner || 'No especificado'}</p>
                 </div>
-                
-                {menu.updated_at && (
-                  <p style={{ fontSize: "12px", color: "#666", marginTop: "10px" }}>
-                    Última actualización: {new Date(menu.updated_at).toLocaleString()}
-                  </p>
-                )}
               </div>
             ))}
           </div>
