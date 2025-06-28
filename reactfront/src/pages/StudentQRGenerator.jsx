@@ -1,128 +1,115 @@
 import { useState } from "react";
-import { apiService } from "../api/axios";
+import { apiService } from "../api/apiService";
 
 function StudentQRGenerator() {
-  const [qrCode, setQrCode] = useState(null);
+  const [qrCode, setQrCode] = useState('');
   const [studentId, setStudentId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const generateQR = async () => {
+  const generateQR = async (e) => {
+    e.preventDefault();
+    
     if (!studentId.trim()) {
       setError('Por favor ingresa tu ID de estudiante');
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     try {
-      setLoading(true);
-      setError('');
-      const data = await apiService.getStudentQR(studentId);
-      setQrCode(data);
+      const data = await apiService.generateStudentQR(studentId);
+      setQrCode(data.qrCode);
     } catch (err) {
-      console.error("Error:", err);
       setError('Error generando código QR. Verifica tu ID de estudiante.');
+      console.error("Error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const inputStyle = {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "3px",
-    marginBottom: "15px"
-  };
-
-  const buttonStyle = {
-    padding: "10px 20px",
-    backgroundColor: loading ? "#ccc" : "#007bff",
-    color: "white",
-    border: "none",
-    borderRadius: "3px",
-    cursor: loading ? "not-allowed" : "pointer"
-  };
-
   return (
     <div>
       <h2>Generar Mi Código QR</h2>
-      <p>Ingresa tu ID de estudiante para generar tu código QR diario</p>
       
-      <div style={{ maxWidth: "400px", margin: "20px 0" }}>
-        <label htmlFor="student-id">ID de Estudiante:</label>
-        <input
-          id="student-id"
-          type="text"
-          placeholder="Ej: EST001, 12345678"
-          value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
-          style={inputStyle}
-        />
+      <form onSubmit={generateQR} style={{ 
+        border: '1px solid #ddd', 
+        padding: '20px', 
+        borderRadius: '5px',
+        marginBottom: '20px'
+      }}>
+        <div style={{ marginBottom: '15px' }}>
+          <label htmlFor="studentId">ID de Estudiante:</label>
+          <input
+            id="studentId"
+            type="text"
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            placeholder="Ingresa tu ID de estudiante"
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginTop: '5px',
+              border: '1px solid #ddd',
+              borderRadius: '3px'
+            }}
+            required
+          />
+        </div>
         
         <button
-          onClick={generateQR}
+          type="submit"
           disabled={loading}
-          style={buttonStyle}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: loading ? '#ccc' : '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '3px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
         >
-          {loading ? "Generando..." : "Generar Código QR"}
+          {loading ? 'Generando...' : 'Generar Código QR'}
         </button>
-      </div>
+      </form>
 
       {error && (
-        <div style={{
-          color: "red",
-          padding: "10px",
-          backgroundColor: "#ffe6e6",
-          borderRadius: "3px",
-          marginBottom: "20px"
+        <div style={{ 
+          color: 'red', 
+          padding: '10px',
+          backgroundColor: '#ffe6e6',
+          borderRadius: '3px',
+          marginBottom: '20px'
         }}>
           {error}
         </div>
       )}
 
       {qrCode && (
-        <div style={{
-          textAlign: "center",
-          padding: "20px",
-          border: "1px solid #ddd",
-          borderRadius: "5px",
-          backgroundColor: "#f8f9fa"
+        <div style={{ 
+          textAlign: 'center',
+          border: '1px solid #ddd',
+          padding: '20px',
+          borderRadius: '5px'
         }}>
-          <h3>Tu Código QR para hoy ({qrCode.date})</h3>
+          <h3>Tu código QR para hoy:</h3>
           <img 
-            src={qrCode.qrCode} 
+            src={qrCode} 
             alt="Código QR del estudiante"
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "5px",
-              backgroundColor: "white",
-              padding: "10px",
-              maxWidth: "300px"
+            style={{ 
+              border: '1px solid #ddd',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+              padding: '10px',
+              maxWidth: '300px'
             }}
           />
-          <p style={{ fontSize: "14px", color: "#666", marginTop: "15px" }}>
-            📱 Presenta este código en el comedor<br/>
-            ⏰ Válido solo para hoy<br/>
-            🔄 Se puede usar una sola vez
+          <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
+            Presenta este código en el comedor para ingresar
           </p>
         </div>
       )}
-
-      <div style={{
-        marginTop: "30px",
-        padding: "15px",
-        backgroundColor: "#e7f3ff",
-        borderRadius: "5px",
-        border: "1px solid #b3d7ff"
-      }}>
-        <h4>ℹ️ Información importante:</h4>
-        <ul style={{ textAlign: "left" }}>
-          <li>El código QR se genera automáticamente para el día actual</li>
-          <li>Cada código QR solo se puede usar una vez</li>
-          <li>Si ya generaste un código hoy, se mostrará el mismo</li>
-          <li>El código expira al final del día</li>
-        </ul>
-      </div>
     </div>
   );
 }
