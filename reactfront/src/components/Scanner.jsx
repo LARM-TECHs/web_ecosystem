@@ -1,182 +1,176 @@
-import { useState, useEffect } from 'react';
-import { apiService } from '../api/axios';
+import { useEffect, useRef, useState } from "react";
+import QrScanner from "qr-scanner";
 
-export default function Scanner() {
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState(null);
-  const [staffId, setStaffId] = useState('STAFF001');
-  const [error, setError] = useState('');
+const Scanner = ({ onScanSuccess, onScanError }) => {
+    // QR States
+    const scanner = useRef();
+    const videoEl = useRef(null);
+    const qrBoxEl = useRef(null);
+    const [qrOn, setQrOn] = useState(true);
+    const [scannedResult, setScannedResult] = useState("");
+    const [isScanning, setIsScanning] = useState(true);
 
-  useEffect(() => {
-    let qrScanner = null;
-
-    const startScanner = async () => {
-      try {
-        // Importar QrScanner dinámicamente
-        const QrScanner = (await import('qr-scanner')).default;
+    // Success handler
+    const handleScanSuccess = (result) => {
+        console.log('QR Escaneado:', result);
+        setScannedResult(result?.data);
         
-        const videoElement = document.getElementById('qr-video');
-        if (!videoElement) return;
-
-        qrScanner = new QrScanner(
-          videoElement,
-          (result) => {
-            console.log('QR detectado:', result.data);
-            handleQRScan(result.data);
-            qrScanner.stop();
-            setIsScanning(false);
-          },
-          {
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-          }
-        );
-
-        await qrScanner.start();
-      } catch (err) {
-        console.error('Error iniciando escáner:', err);
-        setError('Error accediendo a la cámara: ' + err.message);
+        // Pausar el scanner brevemente para evitar múltiples scans
         setIsScanning(false);
-      }
+        scanner.current?.pause();
+        
+        // Llamar al callback del componente padre
+        if (onScanSuccess) {
+            onScanSuccess(result?.data);
+        }
+        
+        // Reanudar el scanner después de 3 segundos
+        setTimeout(() => {
+            setIsScanning(true);
+            setScannedResult("");
+            scanner.current?.start();
+        }, 3000);
     };
 
-    if (isScanning) {
-      startScanner();
-    }
-
-    return () => {
-      if (qrScanner) {
-        qrScanner.stop();
-        qrScanner.destroy();
-      }
+    // Fail handler
+    const handleScanFail = (err) => {
+        console.log('Error de scan:', err);
+        if (onScanError) {
+            onScanError(err);
+        }
     };
-  }, [isScanning]);
 
-  const handleQRScan = async (qrData) => {
-    try {
-      const data = await apiService.validateQR(qrData, staffId);
-      setScanResult(data);
-      setError('');
-    } catch (err) {
-      setError('Error validando código QR');
-      console.error('Error:', err);
-    }
-  };
+    // Initialize scanner
+    useEffect(() => {
+        if (videoEl?.current && !scanner.current) {
+            // Instantiate the QR Scanner
+            scanner.current = new QrScanner(
+                videoEl.current, 
+                handleScanSuccess, 
+                {
+                    onDecodeError: handleScanFail,
+                    preferredCamera: "environment",
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                    overlay: qrBoxEl?.current || undefined,
+                    maxScansPerSecond: 2, // Limitar scans por segundo
+                }
+            );
 
-  const startScanning = () => {
-    setScanResult(null);
-    setError('');
-    setIsScanning(true);
-  };
+            // Start QR Scanner
+            scanner.current
+                .start()
+                .then(() => setQrOn(true))
+                .catch((err) => {
+                    console.error('Error iniciando scanner:', err);
+                    if (err) setQrOn(false);
+                });
+        }
 
-  const stopScanning = () => {
-    setIsScanning(false);
-  };
+        // Cleanup on unmount
+        return () => {
+            if (scanner?.current) {
+                scanner.current.stop();
+                scanner.current.destroy();
+                scanner.current = null;
+            }
+        };
+    }, []);
 
-  return (
-    <div>
-      <h2>Escáner de Códigos QR</h2>
-      
-      <div style={{ marginBottom: '20px' }}>
-        <label htmlFor="staffId">ID del Personal:</label>
-        <input
-          id="staffId"
-          type="text"
-          value={staffId}
-          onChange={(e) => setStaffId(e.target.value)}
-          style={{
-            marginLeft: '10px',
-            padding: '5px',
-            border: '1px solid #ddd',
-            borderRadius: '3px'
-          }}
-        />
-      </div>
+    // Camera permission alert
+    useEffect(() => {
+        if (!qrOn) {
+            alert(
+                "Cámara bloqueada o no accesible. Por favor permite el acceso a la cámara en los permisos del navegador y recarga la página."
+            );
+        }
+    }, [qrOn]);
 
-      <div style={{ marginBottom: '20px' }}>
-        {!isScanning ? (
-          <button
-            onClick={startScanning}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '3px',
-              cursor: 'pointer'
-            }}
-          >
-            Iniciar Escáner
-          </button>
-        ) : (
-          <button
-            onClick={stopScanning}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '3px',
-              cursor: 'pointer'
-            }}
-          >
-            Detener Escáner
-          </button>
-        )}
-      </div>
+    // Manual restart function
+    const restartScanner = () => {
+        setScannedResult("");
+        setIsScanning(true);
+        if (scanner.current) {
+            scanner.current.start();
+        }
+    };
 
-      {/* Video element para el escáner */}
-      {isScanning && (
-        <div style={{ marginBottom: '20px' }}>
-          <video
-            id="qr-video"
-            style={{
-              width: '100%',
-              maxWidth: '500px',
-              height: '375px',
-              border: '1px solid #ddd',
-              borderRadius: '5px'
-            }}
-          />
-          <p style={{ fontSize: '14px', color: '#666', textAlign: 'center' }}>
-            Apunta la cámara hacia el código QR
-          </p>
+    // Stop scanner manually
+    const stopScanner = () => {
+        setIsScanning(false);
+        if (scanner.current) {
+            scanner.current.pause();
+        }
+    };
+
+    return (
+        <div className="qr-reader">
+            {/* Scanner Controls */}
+            <div className="scanner-controls">
+                <button 
+                    className={`control-btn ${isScanning ? 'stop' : 'start'}`}
+                    onClick={isScanning ? stopScanner : restartScanner}
+                >
+                    {isScanning ? '⏸️ Pausar' : '▶️ Iniciar'}
+                </button>
+                <button 
+                    className="control-btn restart"
+                    onClick={restartScanner}
+                >
+                    🔄 Reiniciar
+                </button>
+            </div>
+
+            {/* Video element */}
+            <video ref={videoEl} className="qr-video"></video>
+            
+            {/* QR Box overlay */}
+            <div ref={qrBoxEl} className="qr-box">
+                <div className="qr-frame">
+                    <div className="corner top-left"></div>
+                    <div className="corner top-right"></div>
+                    <div className="corner bottom-left"></div>
+                    <div className="corner bottom-right"></div>
+                </div>
+                
+                {/* Instructions */}
+                <div className="scan-instructions">
+                    <p>Coloca el código QR dentro del marco</p>
+                    {!isScanning && <p className="paused-text">Scanner pausado</p>}
+                </div>
+            </div>
+
+            {/* Status indicator */}
+            <div className={`status-indicator ${qrOn ? 'active' : 'inactive'}`}>
+                <div className="status-dot"></div>
+                <span>{qrOn ? (isScanning ? 'Escaneando...' : 'Pausado') : 'Cámara no disponible'}</span>
+            </div>
+
+            {/* Scanned result display */}
+            {scannedResult && (
+                <div className="scan-result">
+                    <div className="result-header">
+                        <h3>✅ QR Escaneado</h3>
+                        <button 
+                            className="close-result"
+                            onClick={() => setScannedResult("")}
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <p className="result-data">{scannedResult}</p>
+                    <div className="result-actions">
+                        <button 
+                            className="btn btn-primary"
+                            onClick={restartScanner}
+                        >
+                            Escanear otro
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
-      )}
+    );
+};
 
-      {/* Mostrar errores */}
-      {error && (
-        <div style={{
-          color: 'red',
-          padding: '10px',
-          backgroundColor: '#ffe6e6',
-          borderRadius: '3px',
-          marginBottom: '20px'
-        }}>
-          {error}
-        </div>
-      )}
-
-      {/* Mostrar resultado del escaneo */}
-      {scanResult && (
-        <div style={{
-          padding: '15px',
-          border: '1px solid #ddd',
-          borderRadius: '5px',
-          backgroundColor: scanResult.valid ? '#e6ffe6' : '#ffe6e6'
-        }}>
-          <h3>Resultado del Escaneo:</h3>
-          <p><strong>Estado:</strong> {scanResult.valid ? '✅ Válido' : '❌ Inválido'}</p>
-          <p><strong>Mensaje:</strong> {scanResult.message}</p>
-          {scanResult.valid && (
-            <>
-              <p><strong>ID Estudiante:</strong> {scanResult.studentId}</p>
-              <p><strong>Nombre:</strong> {scanResult.studentName}</p>
-              <p><strong>Fecha:</strong> {scanResult.date}</p>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
+export default Scanner;
