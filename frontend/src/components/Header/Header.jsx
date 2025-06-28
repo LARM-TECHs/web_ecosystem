@@ -1,44 +1,22 @@
-import React from "react";
-import './Header.css'; // Asegúrate de tener un archivo CSS para estilos
-import logo_icon from '../../assets/logo_icon.svg'
-import home_icon from '../../assets/home_icon.svg'
-import bell_icon from '../../assets/bell_icon.svg'
-import person_icon from '../../assets/person_icon.svg'
+import React from 'react';
+import './Header.css'; // Mueve aquí los estilos .header, .header-logo, .leaf-icon, .header-title, .header-icons, .header-icon
 
-
-
-const Header = () => {
-    return (
-        <header className="header">
-            <div className="logo">
-                <img src={logo_icon} alt="Logo" className="logo-img" />
+const Header = () => (
+    <header className="header">
+        <div className="header-logo">
+            <div className="leaf-icon">
+                <img src="logoheader.png" alt="Logo" />
             </div>
-            <nav className="nav">
-                <ul>
-                    <li>
-                        <a href="#inicio">
-                            <img src={home_icon} alt="" />
-                        </a>
-                    </li>
-                </ul>
-
-                <h1>Ecosistema Universitario</h1>
-
-                <ul className="user-icons nav-icons">
-                    <li>
-                        <a href="#about">
-                            <img src={bell_icon} alt="" />
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#contact">
-                            <img src={ person_icon } alt="" />
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </header>
-    );
-};
+        </div>
+        <h1 className="header-title">Ecosistema Universitario</h1>
+        <nav className='header-nav'>
+            <div className="header-icons">
+                <div className="header-icon"><img src="home.png" alt="Home" /></div>
+                <div className="header-icon"><img src="bell.png" alt="Notifications" /></div>
+                <div className="header-icon"><img src="user.png" alt="User" /></div>
+            </div>
+        </nav>
+    </header>
+);
 
 export default Header;

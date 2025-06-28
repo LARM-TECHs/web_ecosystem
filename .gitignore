@@ -14,3 +14,4 @@
 /.env.production.local
 # Ignorar archivos de compilación
 **/node_modules
+/start_all.sh
