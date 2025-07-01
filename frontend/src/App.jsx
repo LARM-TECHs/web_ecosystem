@@ -1,13 +1,22 @@
-import { Routes, Route } from "react-router-dom"
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-import LoginPage from "./pages/Login/Login.jsx";
-import DashboardPage from "./pages/Home/DashboardPage.jsx"
-// import Login from './pages/LoginPage.jsx'
-import Chat from './pages/ChatLLM/ChatPage.jsx'
-// import ChatNew from './pages/Chat.jsx'
+import LoginPage from "./pages/LoginPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx"
+import RegisterPage from "./pages/RegisterPage.jsx";
+import ChatPage from './features/chat-llm/pages/ChatPage.jsx'
+
+
+// Importa las páginas de la característica Comedor
+import ComedorDashboardPage from './features/comedor/pages/ComedorDashboardPage.jsx';
+// import MenuManagementPage from './features/comedor/pages/MenuManagementPage.jsx';
+// import MenuDisplayPage from './features/comedor/pages/MenuDisplayPage.jsx'; // Para que los estudiantes vean el menú
+// import QrCodeGenerationPage from './features/comedor/pages/QrCodeGenerationPage.jsx';
+// import QrValidationPage from './features/comedor/pages/QrValidationPage.jsx';
 
 
 
+import NotasDashboardPage from "./features/notas-estudiantes/NotasDashboardPage.jsx";
 // import GestionUsuario from "./pages/notasEstudiantes/HomeGestion.jsx";
 // import HomeEst from "./pages/notasEstudiantes/HomeEst";
 // import Notas from "./pages/notasEstudiantes/Notas";
@@ -32,11 +41,50 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
-      <Route path="/home" element={<DashboardPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-      <Route path="/chat" element={<Chat />} />
-      
+      <Route path="/dashboard" element={<DashboardPage />} />
 
+      {/* Ruta para el Chat LLM */}
+      <Route path="/chat-llm/chat" element={<ChatPage />} />
+
+      <Route path="/comedor/dashboard" element={<ComedorDashboardPage />} />
+
+
+      {/* Rutas para el Microservicio de Comedor 
+      <Route path="/comedor" element={
+        <ProtectedRoute allowedRoles={['admin', 'estudiante', 'staff', 'staff_comedor']}>
+          <ComedorDashboardPage />
+        </ProtectedRoute>
+      } />
+       */}
+      {/* Rutas específicas para Estudiantes del Comedor 
+      <Route path="/comedor/student/menu" element={
+        <ProtectedRoute allowedRoles={['admin', 'estudiante', 'staff_comedor']}>
+          <MenuDisplayPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/comedor/student/qr-generator" element={
+        <ProtectedRoute allowedRoles={['admin', 'estudiante']}>
+          <QrCodeGenerationPage />
+        </ProtectedRoute>
+      } />
+       */}
+
+      {/* Rutas específicas para Personal del Comedor 
+      <Route path="/comedor/staff/menu-management" element={
+        <ProtectedRoute allowedRoles={['admin', 'staff_comedor']}>
+          <MenuManagementPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/comedor/staff/qr-validation" element={
+        <ProtectedRoute allowedRoles={['admin', 'staff_comedor']}>
+          <QrValidationPage />
+        </ProtectedRoute>
+      } />
+       */}
+
+      <Route path="/notas-estudiantes" element={<NotasDashboardPage />} />
       {/* <Route path="/gestion-usuario" element={<GestionUsuario />} />
       <Route path="/gestion-usuario/facultades" element={<Facultades />} />
       <Route path="/gestion-usuario/facultades/new" element={<FormFacultad />} />

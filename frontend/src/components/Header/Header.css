@@ -1,65 +1,63 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* src/components/Header/Header.css */
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #ddf7dd 0%, #e9fae9 100%);
-    overflow: hidden;
-    position: relative;
-}
-
-/* Header */
-.header {
+/* Header principal de la aplicación */
+.app-header {
     background: linear-gradient(135deg, #4a7c59 0%, #6b8e23 100%);
     height: 70px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between; /* Espacio entre la sección izquierda y los íconos/perfil */
     padding: 0 30px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    position: relative;
+    width: 100%;
+    box-sizing: border-box; /* Asegura que padding y border se incluyan en el ancho */
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
 }
 
-.header-logo {
-    position: absolute;
-    left: 30px;
+/* Sección izquierda del header (logo + título) */
+.header-left-section {
     display: flex;
     align-items: center;
     gap: 10px;
-
 }
 
-.leaf-icon {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
+.header-logo-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    color: #4a7c59;
+    width: 45px; /* Tamaño del contenedor del logo */
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2); /* Fondo sutil para el logo */
+    backdrop-filter: blur(5px); /* Efecto de desenfoque */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.logo-image { /* Estilos para la imagen dentro del contenedor del logo */
+    width: 35px; /* Tamaño de la imagen del logo */
+    height: 35px;
+    object-fit: contain; /* Asegura que la imagen se ajuste sin distorsionarse */
+}
 
 .header-title {
     color: white;
     font-size: 24px;
     font-weight: 600;
     letter-spacing: 0.5px;
-    text-align: center;
-    color: white;
+    margin: 0; /* Reinicia márgenes por si acaso */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Sombra para mejor legibilidad */
+}
 
+/* Navegación y sección de íconos/perfil */
+.header-nav {
+    display: flex;
+    align-items: center;
 }
 
 .header-icons {
     display: flex;
-    gap: 30px;
-    position: absolute;
-    top: 18px;
-    right: 20px;
+    gap: 20px; /* Espacio entre los íconos */
+    align-items: center;
 }
 
 .header-icon {
@@ -70,14 +68,169 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: white; /* Color del ícono (si es texto) */
     font-size: 18px;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    position: relative; /* Para el menú desplegable del usuario */
+}
+
+.header-icon img {
+    width: 24px; /* Tamaño de las imágenes de los íconos */
+    height: 24px;
+    filter: brightness(0) invert(1); /* Para hacer los íconos blancos si son oscuros */
 }
 
 .header-icon:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para el menú desplegable del perfil de usuario */
+.user-profile-toggle {
+    /* Estilos base para el ícono de usuario */
+    /* Aseguramos que este elemento (el .header-icon con esta clase) es el contenedor del dropdown */
+}
+
+.user-profile-dropdown {
+    position: absolute;
+    /* Ajuste clave: solapa ligeramente con el elemento padre al que se le hace hover */
+    top: calc(100% - 50px); /* Inicia 5px ANTES del final del contenedor padre */
+    right: 0;
+    background-color: #161625; /* Fondo del dropdown */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    /* Transiciones ajustadas:
+       - opacity y transform sin retraso para que aparezca suavemente
+       - visibility con un retraso para que no se oculte instantáneamente al salir del hover
+         El retraso de 0.2s se aplica al ocultarse. Al mostrarse, el retraso es 0s.
+    */
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.2s;
+}
+
+/* Mostrar el dropdown al pasar el ratón sobre el ícono de usuario */
+.user-profile-toggle:hover .user-profile-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s; /* Sin retraso al mostrar */
+}
+
+.user-name-display {
+    color: #fff;
+    font-size: 0.95em;
+    white-space: nowrap; /* Evita que el texto se rompa */
+    text-align: center;
+}
+
+.logout-button {
+    background-color: #dc3545; /* Rojo para logout */
+    color: white;
+    border: none;
+    border-radius: 8px; /* Bordes más suaves */
+    padding: 8px 15px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 100%; /* Ocupa todo el ancho del dropdown */
+}
+
+.logout-button:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+}
+
+
+/* Media Queries para Responsividad */
+@media (max-width: 768px) {
+    .app-header {
+        flex-direction: column; /* Apila elementos en pantallas pequeñas */
+        height: auto; /* Altura auto para que se ajuste al contenido apilado */
+        padding: 10px 15px;
+        align-items: flex-start; /* Alinea los elementos a la izquierda */
+        gap: 10px; /* Espacio entre secciones */
+    }
+
+    .header-title {
+        font-size: 20px;
+    }
+
+    .header-nav {
+        width: 100%; /* Ocupa todo el ancho disponible */
+        justify-content: flex-end; /* Alinea los íconos a la derecha si es posible */
+        margin-top: 10px; /* Espacio sobre los íconos */
+    }
+
+    .header-icons {
+        gap: 15px; /* Menos espacio entre íconos */
+    }
+
+    .header-icon {
+        width: 35px;
+        height: 35px;
+    }
+
+    .header-icon img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .user-profile-dropdown {
+        /* En móviles, podrías querer que el dropdown se vea diferente o se abra de otra forma */
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px); /* Centrarlo debajo */
+    }
+    .user-profile-toggle:hover .user-profile-dropdown {
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@media (max-width: 480px) {
+    .app-header {
+        padding: 8px 10px;
+    }
+    .header-left-section {
+        flex-direction: column; /* Apila el logo y el título si el espacio es muy reducido */
+        align-items: center;
+        width: 100%;
+    }
+    .header-logo-container {
+        width: 40px;
+        height: 40px;
+    }
+    .logo-image {
+        width: 30px;
+        height: 30px;
+    }
+    .header-title {
+        font-size: 18px;
+    }
+    .header-icons {
+        gap: 10px;
+    }
+    .header-icon {
+        width: 30px;
+        height: 30px;
+    }
+    .header-icon img {
+        width: 18px;
+        height: 18px;
+    }
 }

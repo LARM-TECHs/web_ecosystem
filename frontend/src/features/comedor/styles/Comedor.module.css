@@ -1,0 +1,608 @@
+/* src/features/comedor/styles/Comedor.module.css */
+
+/* --- General --- */
+.comedorPage {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+    background-color: #f4f7f6;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.title, .sectionTitle {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 2em;
+    font-weight: 700;
+}
+
+.sectionTitle {
+    font-size: 1.6em;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+/* --- Botones --- */
+.buttonPrimary, .buttonSecondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.buttonPrimary {
+    background-color: #007bff;
+    color: white;
+}
+
+.buttonPrimary:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.buttonPrimary:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.buttonSecondary {
+    background-color: #6c757d;
+    color: white;
+    margin-left: 10px; /* Para usar con el botón primario */
+}
+
+.buttonSecondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+.buttonSecondary:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+
+/* --- Mensajes de Alerta --- */
+.alertMessage {
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.errorMessage {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.successMessage {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* --- Formularios y Entradas --- */
+.formContainer {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+}
+
+.formGroup {
+    margin-bottom: 18px;
+}
+
+.formGroup label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+}
+
+.formInput, .formTextarea {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 1em;
+    box-sizing: border-box; /* Incluye padding y border en el ancho total */
+}
+
+.formTextarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* --- Listas y Tablas --- */
+.listContainer {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    padding: 15px;
+}
+
+.listItem {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+}
+
+.listItem:last-child {
+    border-bottom: none;
+}
+
+.listItem h4 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #34495e;
+}
+
+.listItem p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.listItem .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px; /* Espacio si se envuelve */
+}
+
+/* --- Menu Display --- */
+.menuCard {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.menuSection {
+    margin-bottom: 20px;
+    border: 1px solid #f0f0f0;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #fafafa;
+}
+
+.menuSection h3 {
+    color: #2c3e50;
+    margin-top: 0;
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menuDescription {
+    margin-left: 30px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff;
+    border-radius: 4px;
+    color: #444;
+}
+
+/* --- QR Code Display --- */
+.qrDisplayContainer {
+    text-align: center;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    margin-top: 20px;
+}
+
+.qrImage {
+    border: 5px solid #eee;
+    border-radius: 8px;
+    background-color: white;
+    padding: 10px;
+    max-width: 300px;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+}
+
+.qrInstruction {
+    font-size: 0.9em;
+    color: #777;
+    margin-top: 15px;
+}
+
+/* --- Comedor Dashboard --- */
+.comedorDashboard {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+    text-align: center;
+}
+
+.comedorDashboard .title {
+    color: #2c3e50;
+    margin-bottom: 40px;
+    font-size: 2.2em;
+}
+
+.sectionContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+}
+
+.comedorDashboard .card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+    width: 100%;
+    max-width: 380px;
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.comedorDashboard .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.comedorDashboard .cardTitle {
+    color: #007bff;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    text-align: center;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+.comedorDashboard .list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.comedorDashboard .list li {
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+.comedorDashboard .list li strong {
+    color: #34495e;
+}
+
+.comedorDashboard .link {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 15px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.comedorDashboard .link:hover {
+    background-color: #218838;
+}
+
+/* --- QR Validation Page / Staff Tools --- */
+.comedorQrPage {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+}
+
+.navTabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    background-color: #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
+}
+
+.navTab {
+    padding: 15px 25px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #495057;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navTab:hover {
+    background-color: #dee2e6;
+}
+
+.navTab.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.pageContent {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.scannerContainer {
+    text-align: center;
+}
+
+.scannerWrapper {
+    margin: 20px auto;
+    max-width: 500px;
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #f0f8ff;
+    position: relative; /* Para el spinner */
+}
+
+.qrReaderPlaceholder {
+    width: 100%;
+    height: 300px; /* Altura para el área de la cámara */
+    background-color: #e9ecef;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    color: #6c757d;
+}
+
+.qrSimulatorInput {
+    width: calc(100% - 40px);
+    padding: 10px;
+    margin-top: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.scannerNote {
+    font-size: 0.85em;
+    color: #888;
+    margin-top: 10px;
+}
+
+.loadingOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    z-index: 10;
+}
+
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #007bff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.validationResult {
+    background-color: #e6ffe6; /* Light green for valid */
+    border: 1px solid #aaffaa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 25px;
+    text-align: left;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.validationResult h3 {
+    color: #28a745;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.studentInfo p {
+    margin: 8px 0;
+    font-size: 1.1em;
+}
+
+.studentInfo strong {
+    color: #34495e;
+}
+
+.historyContainer, .studentsContainer {
+    margin-top: 20px;
+}
+
+.historyList, .studentsList {
+    margin-top: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+
+.historyItem, .studentItem {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.historyItem:last-child, .studentItem:last-child {
+    border-bottom: none;
+}
+
+.studentName {
+    font-weight: 600;
+    color: #007bff;
+    flex: 2;
+    min-width: 150px;
+}
+
+.studentId, .studentExternalId, .studentEmail {
+    flex: 1;
+    min-width: 100px;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.status {
+    font-weight: 500;
+    flex: 0.5;
+    min-width: 80px;
+}
+
+.timestamp {
+    font-style: italic;
+    color: #777;
+    font-size: 0.9em;
+    flex: 1;
+    min-width: 120px;
+    text-align: right;
+}
+
+
+/* --- Modal Styles --- */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modalTitle {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+}
+
+.modalCloseButton {
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.2s;
+}
+
+.modalCloseButton:hover {
+    color: #333;
+}
+
+.modalBody {
+    margin-bottom: 20px;
+    line-height: 1.6;
+    color: #555;
+}
+
+.modalFooter {
+    text-align: right;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .navTabs {
+        flex-direction: column;
+    }
+    .navTab {
+        width: 100%;
+        text-align: center;
+    }
+    .comedorDashboard .card {
+        max-width: 100%;
+    }
+    .historyItem, .studentItem {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .studentName, .studentId, .studentExternalId, .studentEmail, .status, .timestamp {
+        width: 100%;
+        text-align: left;
+    }
+    .timestamp {
+        text-align: left; /* Ajustar para dispositivos móviles */
+    }
+}
