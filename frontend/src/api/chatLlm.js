@@ -1,79 +1,107 @@
 // src/api/chatLlm.js
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
 
 const API_GATEWAY_URL = 'http://localhost:4000'; // URL de tu API Gateway
 
-/**
- * Obtiene el token JWT del localStorage.
- * @returns {string | null} El token JWT o null si no se encuentra.
- */
 const getAuthToken = () => {
     return localStorage.getItem('authToken');
 };
 
-/**
- * Configuración de headers con token de autenticación.
- * Asegura que el prefijo "Bearer " se añada al token.
- * @returns {object} Objeto de headers.
- */
 const getAuthHeaders = () => {
     const token = getAuthToken();
-    // ** CORRECCIÓN: Añadir "Bearer " si el token existe **
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 /**
- * Obtiene la lista de chats de un usuario.
- * @returns {Promise<Array<object>>} Array de objetos de chat.
- * @throws {Error} Si la solicitud falla.
+ * [NUEVO] Obtiene la lista de conversaciones de un usuario.
+ * @returns {Promise<Array<object>>} Array de objetos de conversación.
  */
-export const getChatList = async () => {
+export const getConversations = async () => {
     try {
-        const response = await axios.get(`${API_GATEWAY_URL}/chat-llm/chats`, {
+        const response = await axios.get(`${API_GATEWAY_URL}/chat-llm/conversations`, {
             headers: getAuthHeaders()
         });
-        return response.data; // Esperamos un objeto como { chats: [...] }
+        return response.data.conversations; // Devuelve el array directamente
     } catch (error) {
-        console.error('Error fetching chat list from API:', error.response?.data?.message || error.message);
-        throw new Error(error.response?.data?.message || 'No se pudo obtener la lista de chats.');
+        console.error('Error fetching conversations from API:', error.response?.data?.message || error.message);
+        throw new Error(error.response?.data?.message || 'No se pudo obtener la lista de conversaciones.');
     }
 };
 
 /**
- * Obtiene el historial de mensajes para un chat específico.
- * @param {string} chatId - El ID del chat.
- * @returns {Promise<object>} Objeto con el historial del chat.
- * @throws {Error} Si la solicitud falla.
+ * [NUEVO] Obtiene el historial de mensajes para una conversación específica.
+ * @param {string} conversationId - El ID de la conversación.
+ * @returns {Promise<Array<object>>} Array con los mensajes de la conversación.
  */
-export const getChatHistory = async (chatId) => {
+export const getConversationMessages = async (conversationId) => {
     try {
-        const response = await axios.get(`${API_GATEWAY_URL}/chat-llm/chats/${chatId}`, {
+        const response = await axios.get(`${API_GATEWAY_URL}/chat-llm/conversations/${conversationId}`, {
             headers: getAuthHeaders()
         });
-        return response.data; // Esperamos un objeto como { history: [...] }
+        return response.data.messages; // Devuelve el array de mensajes
     } catch (error) {
-        console.error(`Error fetching chat history for chat ID ${chatId} from API:`, error.response?.data?.message || error.message);
-        throw new Error(error.response?.data?.message || `No se pudo obtener el historial del chat ${chatId}.`);
+        console.error(`Error fetching messages for conversation ${conversationId}:`, error.response?.data?.message || error.message);
+        throw new Error(error.response?.data?.message || 'No se pudo obtener el historial del chat.');
     }
 };
 
 /**
- * Envía un mensaje al LLM y recibe una respuesta.
- * @param {object} payload - Objeto que contiene el mensaje (ej. { message: "Hola" }).
- * @returns {Promise<object>} Objeto con la respuesta del LLM.
- * @throws {Error} Si la solicitud falla.
+ * [NUEVO Y MEJORADO] Inicia o continúa una conversación en modo STREAMING.
+ * Usa la librería @microsoft/fetch-event-source que es más robusta.
+ * @param {object} payload - Objeto que contiene el mensaje y opcionalmente el conversationId.
+ * @param {object} callbacks - Objeto con los callbacks onMessage, onError, onClose, onOpen.
+ * @returns {object} Un objeto con un método `abort()` para detener el stream.
  */
-export const sendMessage = async (payload) => {
-    try {
-        const response = await axios.post(`${API_GATEWAY_URL}/chat-llm/chat`, payload, { // El payload ya es { message: input }
-            headers: getAuthHeaders()
-        });
-        // La estructura de la respuesta puede variar, ajusta según lo que devuelve tu LLM.
-        // Asumiendo que `response.data` directamente contiene la respuesta del LLM como el botMessage
-        console.log('Respuesta del LLM:', response.data);
-        return response.data;
-    } catch (error) {
-        console.error('Error sending message to LLM API:', error.response?.data?.message || error.message);
-        throw new Error(error.response?.data?.message || 'Error al enviar mensaje al Chat LLM.');
+export const streamChat = (payload, { onOpen, onMessage, onError, onClose }) => {
+    const token = getAuthToken();
+    if (!token) {
+        onError(new Error("Token de autenticación no encontrado."));
+        return;
     }
+
+    const ctrl = new AbortController();
+
+    fetchEventSource(`${API_GATEWAY_URL}/chat-llm/stream`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // fetchEventSource sí permite headers
+        },
+        body: JSON.stringify(payload),
+        signal: ctrl.signal,
+
+        onopen: async (response) => {
+            if (response.ok) {
+                onOpen(); // Llama al callback onOpen cuando la conexión se establece
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || `Error del servidor: ${response.statusText}`);
+            }
+        },
+        onmessage(ev) {
+            // Maneja los diferentes tipos de eventos que enviamos desde el backend
+            if (ev.event === 'conversation_id') {
+                const data = JSON.parse(ev.data);
+                onMessage({ type: 'id', ...data });
+            } else if (ev.data === '[DONE]') {
+                // El evento de cierre ahora se maneja en el callback 'onclose'
+            } else {
+                const data = JSON.parse(ev.data);
+                onMessage({ type: 'chunk', ...data });
+            }
+        },
+        onclose() {
+            onClose(); // Llama al callback onClose cuando la conexión se cierra limpiamente
+        },
+        onerror(err) {
+            onError(err); // Llama al callback onError si ocurre un error
+            throw err; // Es importante relanzar el error para detener el reintento automático
+        }
+    });
+
+    return {
+        abort: () => ctrl.abort()
+    };
 };
+

@@ -11,6 +11,10 @@ export const services = {
     'chatLlmService': {
         target: process.env.CHAT_LLM_SERVICE_URL || 'http://localhost:4001',
         routes: [
+            // --- RUTAS ACTUALIZADAS PARA EL NUEVO MODELO DE CONVERSACIONES ---
+            { method: 'POST', path: '/chat-llm/stream', authRequired: true, targetPath: '/api/chat-llm/stream' },
+            { method: 'GET', path: '/chat-llm/conversations', authRequired: true, targetPath: '/api/chat-llm/conversations' },
+            { method: 'GET', path: '/chat-llm/conversations/:conversationId', authRequired: true, targetPath: '/api/chat-llm/conversations/:conversationId' },
             { method: 'POST', path: '/chat-llm/chat', authRequired: true, targetPath: '/api/chat-llm/chat' },
             { method: 'GET', path: '/chat-llm/chats', authRequired: true, targetPath: '/api/chat-llm/chats' },
             { method: 'GET', path: '/chat-llm/chats/:chat_id', authRequired: true, targetPath: '/api/chat-llm/chats/:chat_id' },

@@ -1,206 +1,180 @@
-// src/features/chat-llm/pages/ChatPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'; // Para la redirección al logout
-import { getChatList, getChatHistory, sendMessage } from '../../../api/chatLlm.js'; // Importa las funciones API
-import Header from '../../../components/Header/Header.jsx'; // Ruta actualizada al Header global
-import './ChatPage.css'; // Asegúrate de que esta ruta sea correcta para tu CSS de ChatPage
-
-// Importa las imágenes directamente
-// import appLogo from '../../../assets/images/logo256x256.png'; // Ruta ajustada
-// import headerLogo from '../../../assets/images/logoheader.png'; // Si usas el mismo logo en el header
-import sendArrowIcon from '../../../assets/icons/arrow.png'; // Asumiendo que 'arrow.png' es el icono de enviar
-// import defaultUserIcon from '../../../assets/icons/user.png'; // Icono de usuario por defecto si no hay foto
+import { getConversations, getConversationMessages, streamChat } from '../../../api/chatLlm.js';
+import Header from '../../../components/Header/Header.jsx';
+import './ChatPage.css';
+import sendArrowIcon from '../../../assets/icons/arrow.png';
 
 const ChatPage = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
-    const [chatList, setChatList] = useState([]);
-    const [selectedChatId, setSelectedChatId] = useState(null);
-    const [loadingChats, setLoadingChats] = useState(false);
-    const [loadingHistory, setLoadingHistory] = useState(false);
-    const [sendingMessage, setSendingMessage] = useState(false);
-    const [error, setError] = useState(null); // Para mostrar errores al usuario
-    const messagesEndRef = useRef(null); // Para scroll automático al final de los mensajes
+    const [conversations, setConversations] = useState([]);
+    const [selectedConversationId, setSelectedConversationId] = useState(null);
+    const [loadingConversations, setLoadingConversations] = useState(false);
+    const [loadingMessages, setLoadingMessages] = useState(false);
+    const [isStreaming, setIsStreaming] = useState(false);
+    const [error, setError] = useState(null);
+    const messagesEndRef = useRef(null);
+    const streamControllerRef = useRef(null);
 
-    const navigate = useNavigate(); // Hook para navegación
-
-    // Obtener información del usuario del localStorage
-    const userName = localStorage.getItem('userEmail') || 'Usuario'; // Usar email o un nombre por defecto
-    const userRole = localStorage.getItem('userRole'); // Obtener el rol del usuario
-
-    // Función para desplazarse al final de los mensajes
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // Efecto para cargar la lista de chats al montar el componente
-    useEffect(() => {
-        const fetchChats = async () => {
-            setLoadingChats(true);
-            setError(null);
-            try {
-                const data = await getChatList();
-                setChatList(data.chats || []);
-                // Si hay chats y no hay uno seleccionado, seleccionar el primero
-                if (data.chats && data.chats.length > 0 && !selectedChatId) {
-                    setSelectedChatId(data.chats[0].id);
-                    await fetchChatHistory(data.chats[0].id);
-                }
-            } catch (err) {
-                setError(`Error al cargar los chats: ${err.message}`);
-                console.error(err);
-            } finally {
-                setLoadingChats(false);
-            }
-        };
-
-        fetchChats();
-    }, []); // Se ejecuta solo una vez al montar el componente
-
-    // Efecto para cargar el historial de chat cuando cambia el chat seleccionado
-    const fetchChatHistory = async (chatId) => {
-        setLoadingHistory(true);
+    // Cargar lista de conversaciones inicial
+    const fetchConversations = async () => {
+        setLoadingConversations(true);
         setError(null);
         try {
-            // const data = await getChatHistory(chatId);
-            // // Mapear la historia a un formato de mensajes de UI
-            // const formattedMessages = data.history.flatMap(entry => [
-            //     { text: entry.message, sender: 'user' },
-            //     { text: entry.response, sender: 'bot' }
-            // ]);
-            const { message, response } = await getChatHistory(chatId);
-            // Ponemos siempre primero el mensaje del usuario y luego la respuesta del bot
-            const formattedMessages = [
-                { text: message, sender: 'user' },
-                { text: response, sender: 'bot' }
-            ];
-            setMessages(formattedMessages);
+            const data = await getConversations();
+            setConversations(data || []);
         } catch (err) {
-            setError(`Error al cargar el historial del chat: ${err.message}`);
-            console.error(err);
+            setError(`Error al cargar conversaciones: ${err.message}`);
         } finally {
-            setLoadingHistory(false);
-            scrollToBottom(); // Desplazarse al final después de cargar
+            setLoadingConversations(false);
         }
     };
 
-    // Efecto para desplazar al final cuando los mensajes cambian
+    useEffect(() => {
+        fetchConversations();
+    }, []);
+
+    // Scroll al final cuando los mensajes cambian
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!input.trim()) return;
+    // Limpiar el stream si el componente se desmonta
+    useEffect(() => {
+        return () => {
+            streamControllerRef.current?.abort();
+        };
+    }, []);
 
-        const userMessage = { text: input.trim(), sender: 'user' };
-        // Añadir el mensaje del usuario inmediatamente
-        setMessages((prevMessages) => [...prevMessages, userMessage]);
-        setInput(''); // Limpiar el input
+    const handleSelectConversation = async (conversationId) => {
+        if (isStreaming) streamControllerRef.current?.abort();
+        setIsStreaming(false);
 
-        setSendingMessage(true);
+        setSelectedConversationId(conversationId);
+        setLoadingMessages(true);
         setError(null);
-
         try {
-            // La API de ChatLLM espera un objeto con la clave 'message'
-            // const response = await sendMessage({ message: userMessage.text, chatId: selectedChatId });
-            // // Asumiendo que la respuesta del LLM viene en response.answer (ajustar según tu backend)
-            // const botMessageText = response.answer || 'No se recibió respuesta.';
-            // const botMessage = { text: botMessageText, sender: 'bot' };
-            // Enviamos el mensaje y recibimos la respuesta del backend
-            const data = await sendMessage({ message: userMessage.text, chatId: selectedChatId });
-
-            // Extraemos el contenido del primer choice
-            const choice = data.choices && data.choices[0];
-            const botMessageText = choice?.message?.content
-                ?? 'No se recibió respuesta del LLM.';
-            const botMessage = { text: botMessageText, sender: 'bot' };
-            setMessages((prevMessages) => [...prevMessages, botMessage]);
-
-            // Actualizar la lista de chats si es un nuevo chat o el primero
-            if (!selectedChatId) {
-                // Si el backend devuelve el ID del nuevo chat, úsalo
-                setSelectedChatId(response.chatId || null);
-                // Vuelve a cargar la lista de chats para incluir el nuevo si es necesario
-                const updatedChatList = await getChatList();
-                setChatList(updatedChatList.chats || []);
-            }
+            const messagesData = await getConversationMessages(conversationId);
+            // Mapear el formato de la BD al formato del estado de la UI
+            const formattedMessages = messagesData.map(msg => ({
+                text: msg.content,
+                sender: msg.role
+            }));
+            setMessages(formattedMessages);
         } catch (err) {
-            setError(`Error al enviar mensaje: ${err.message}`);
-            console.error(err);
-            // Si hay un error, puedes añadir un mensaje de bot que indique el error
-            setMessages((prevMessages) => [...prevMessages, { text: `Error: ${err.message}`, sender: 'bot error' }]);
+            setError(`Error al cargar mensajes: ${err.message}`);
+            setMessages([]);
         } finally {
-            setSendingMessage(false);
-            scrollToBottom();
+            setLoadingMessages(false);
         }
     };
 
+    const handleSendMessage = async (e) => {
+        e.preventDefault();
+        if (!input.trim() || isStreaming) return;
+
+        const userMessage = { text: input.trim(), sender: 'user' };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsStreaming(true);
+        setError(null);
+
+        // Añadir un placeholder para la respuesta del bot
+        setMessages(prev => [...prev, { text: '', sender: 'assistant', streaming: true }]);
+
+        const payload = {
+            message: userMessage.text,
+            conversationId: selectedConversationId
+        };
+
+        streamControllerRef.current = streamChat(payload, {
+            onOpen: () => console.log("Conexión de stream abierta."),
+            onMessage: (data) => {
+                if (data.type === 'id') {
+                    setSelectedConversationId(data.conversationId);
+                } else if (data.type === 'chunk' && data.content) {
+                    setMessages(prev => {
+                        const lastMsg = prev[prev.length - 1];
+                        if (lastMsg?.sender === 'assistant') {
+                            lastMsg.text += data.content;
+                            return [...prev.slice(0, -1), lastMsg];
+                        }
+                        return prev;
+                    });
+                }
+            },
+            onError: (err) => {
+                setError(`Error de stream: ${err.message}`);
+                setIsStreaming(false);
+            },
+            onClose: () => {
+                setIsStreaming(false);
+                // Marcar el mensaje como completo
+                setMessages(prev => prev.map(msg => ({ ...msg, streaming: false })));
+                // Actualizar la lista de conversaciones para reflejar el nuevo título o fecha
+                fetchConversations();
+            }
+        });
+    };
+
     const handleNewChat = () => {
+        if (isStreaming) streamControllerRef.current?.abort();
+        setIsStreaming(false);
+        setSelectedConversationId(null);
         setMessages([]);
-        setSelectedChatId(null);
-        setError(null); // Limpiar errores al iniciar nuevo chat
-        // Opcional: Podrías llamar a una API para "crear" un nuevo chat vacío aquí si tu backend lo requiere
+        setError(null);
+        setInput('');
     };
 
-    const handleSelectChat = (chatId) => {
-        setSelectedChatId(chatId);
-        fetchChatHistory(chatId);
-    };
-
-    // Función para auto-redimensionar el textarea
     const autoResize = (textarea) => {
-        textarea.style.height = 'auto'; // Resetea la altura
-        textarea.style.height = `${textarea.scrollHeight}px`; // Ajusta la altura según el contenido
+        textarea.style.height = 'auto';
+        textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
     return (
-        <div className='chat-page-layout'> {/* Cambiado de rootLayout para mayor especificidad */}
-            {/* Componente Header */}
+        <div className='chat-page-layout'>
             <Header />
-
             <div className="chat-wrapper">
                 <aside className="chat-list-sidebar">
-                    <button className='new-chat-button' onClick={handleNewChat}>+ Nuevo Chat</button>
-                    <div className="chat-list-title">Chats Recientes</div>
-                    {loadingChats ? (
-                        <div className="loading-indicator">Cargando chats...</div>
-                    ) : (
-                        chatList.length > 0 ? (
-                            chatList.map((chat) => (
+                    <button className='new-chat-button' onClick={handleNewChat}>+ Nueva Conversación</button>
+                    <div className="chat-list-title">Conversaciones</div>
+                    {loadingConversations ? <div className="loading-indicator">Cargando...</div> :
+                        conversations.length > 0 ? (
+                            conversations.map((conv) => (
                                 <button
-                                    key={chat.id}
-                                    className={`chat-item ${selectedChatId === chat.id ? 'selected' : ''}`}
-                                    onClick={() => handleSelectChat(chat.id)}
+                                    key={conv.id}
+                                    className={`chat-item ${selectedConversationId === conv.id ? 'selected' : ''}`}
+                                    onClick={() => handleSelectConversation(conv.id)}
                                 >
-                                    Chat {chat.id} {/* Podrías mostrar el primer mensaje o un título */}
+                                    {conv.title}
                                 </button>
                             ))
                         ) : (
-                            <div className="no-chats-message">No hay chats aún. ¡Empieza uno nuevo!</div>
-                        )
-                    )}
+                            <div className="no-chats-message">No hay conversaciones.</div>
+                        )}
                     {error && <div className="chat-list-error-message">{error}</div>}
                 </aside>
 
                 <section className="chat-main-content">
                     <div className="chat-messages-container">
-                        {loadingHistory ? (
-                            <div className="loading-indicator">Cargando historial...</div>
-                        ) : (
+                        {loadingMessages ? <div className="loading-indicator">Cargando mensajes...</div> :
                             messages.length > 0 ? (
                                 messages.map((msg, index) => (
                                     <div key={index} className={`message-bubble ${msg.sender}`}>
                                         <div className="message-text">{msg.text}</div>
+                                        {msg.streaming && <span className="blinking-cursor"></span>}
                                     </div>
                                 ))
                             ) : (
                                 <div className="no-messages-placeholder">
-                                    ¡Bienvenido al Chat LLM! Escribe tu primer mensaje.
+                                    Selecciona una conversación o empieza una nueva.
                                 </div>
-                            )
-                        )}
-                        <div ref={messagesEndRef} /> {/* Elemento para scroll automático */}
+                            )}
+                        <div ref={messagesEndRef} />
                     </div>
 
                     <form className="chat-input-form" onSubmit={handleSendMessage}>
@@ -209,28 +183,22 @@ const ChatPage = () => {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onInput={(e) => autoResize(e.target)}
-                            placeholder={sendingMessage ? "Enviando..." : "Escribe tu mensaje aquí..."}
+                            placeholder={isStreaming ? "Generando respuesta..." : "Escribe tu mensaje aquí..."}
                             rows={1}
-                            disabled={sendingMessage}
+                            disabled={isStreaming || loadingMessages}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage(e);
+                                }
+                            }}
                         />
-                        <button type="submit" className="send-button" disabled={sendingMessage}>
-                            {sendingMessage ? (
-                                <span className="spinner"></span> // Un spinner CSS simple
-                            ) : (
-                                <img src={sendArrowIcon} alt="Enviar" />
-                            )}
+                        <button type="submit" className="send-button" disabled={isStreaming || loadingMessages}>
+                            {isStreaming ? <span className="spinner"></span> : <img src={sendArrowIcon} alt="Enviar" />}
                         </button>
                     </form>
                 </section>
             </div>
-
-            {/* Este div de 'user-profile' y el botón de logout estaban en el Header,
-                pero los hemos movido al Header globalmente para mejor organización.
-                Si quieres un profile específico para esta página, lo añadirías aquí. */}
-            {/* <div className='user-profile'>
-                <span>{userName} ({userRole})</span>
-                <button onClick={handleLogout} className="logout-button">Cerrar sesión</button>
-            </div> */}
         </div>
     );
 };

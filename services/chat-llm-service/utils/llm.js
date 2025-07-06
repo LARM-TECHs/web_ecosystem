@@ -1,6 +1,9 @@
 // utils/llm.js
 // Importar las librerías necesarias
-import { Ollama } from "@langchain/ollama";
+// import { Ollama } from "@langchain/ollama";
+import { ChatOllama } from "@langchain/ollama";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -16,15 +19,21 @@ let llm = null;
  * Configura el modelo LLM utilizando Ollama.
  * Asegúrate de que Ollama esté corriendo y el modelo especificado esté descargado.
  */
+// function configureLlm() {
+//     try {
+//         const modelName = process.env.OLLAMA_MODEL || "qwen2.5-coder:0.5b"; // Puedes configurar el modelo en .env
+//         llm = new Ollama({ model: modelName });
+//         console.log(`✅ Modelo LLM '${modelName}' configurado con Ollama.`);
+//     } catch (error) {
+//         console.error(`❌ Error al configurar el modelo LLM: ${error.message}`);
+//         throw new Error(`Error al configurar el modelo LLM: ${error.message}`); // Relanza para que el server no inicie sin LLM
+//     }
+// }
+
 function configureLlm() {
-    try {
-        const modelName = process.env.OLLAMA_MODEL || "qwen2.5-coder:0.5b"; // Puedes configurar el modelo en .env
-        llm = new Ollama({ model: modelName });
-        console.log(`✅ Modelo LLM '${modelName}' configurado con Ollama.`);
-    } catch (error) {
-        console.error(`❌ Error al configurar el modelo LLM: ${error.message}`);
-        throw new Error(`Error al configurar el modelo LLM: ${error.message}`); // Relanza para que el server no inicie sin LLM
-    }
+    const modelName = process.env.OLLAMA_MODEL || "qwen2.5-coder:0.5b";
+    llm = new ChatOllama({ model: modelName });
+    console.log(`✅ Modelo LLM '${modelName}' configurado con Ollama.`);
 }
 
 /**
@@ -62,4 +71,36 @@ async function chatWithLlm(userMessage) {
     }
 }
 
-export { configureLlm, chatWithLlm };
+/**
+ * Interactúa con el LLM usando un historial de chat y un nuevo input.
+ * @param {Array<object>} history - Array de mensajes previos. Cada objeto debe tener { role: 'user' | 'assistant', content: '...' }.
+ * @param {string} input - El nuevo mensaje del usuario.
+ * @returns {Promise<AsyncIterable<any>>} Un stream iterable con los tokens de la respuesta del LLM.
+ */
+async function chatWithHistoryStream(history, input) {
+    if (!llm) {
+        throw new Error("❌ El modelo LLM no está configurado. Llama a configureLlm() primero.");
+    }
+
+    const systemPrompt = `Eres un asistente virtual de la Universidad de Las Tunas. Eres amable, servicial y tu conocimiento se centra en temas académicos, eventos de la universidad y vida estudiantil. Responde siempre en español. No debes responder preguntas sobre temas peligrosos o inapropiados.`;
+
+    // Convierte el historial de la BD al formato que espera LangChain
+    const messages = history.map(msg =>
+        msg.role === 'user' ? new HumanMessage(msg.content) : new AIMessage(msg.content)
+    );
+
+    // Crea la plantilla del prompt, incluyendo el prompt del sistema, el historial y el nuevo input
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+        ["system", systemPrompt],
+        ...messages,
+        ["human", "{input}"],
+    ]);
+
+    // Crea la cadena que une el prompt con el modelo
+    const chain = promptTemplate.pipe(llm);
+
+    // Invoca la cadena con el input del usuario para obtener un stream de respuesta
+    return await chain.stream({ input });
+}
+
+export { configureLlm, chatWithLlm, chatWithHistoryStream };
