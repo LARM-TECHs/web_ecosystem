@@ -13,58 +13,90 @@ const ChatPage = () => {
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
     const [error, setError] = useState(null);
+
     const messagesEndRef = useRef(null);
     const streamControllerRef = useRef(null);
+
+    // ————— Char‑by‑char queue + pump —————
+    const wordQueueRef = useRef([]);      // cola de caracteres
+    const pumpIntervalRef = useRef(null); // intervalo de bombeo
+
+    const startWordPump = () => {
+        if (pumpIntervalRef.current) return;
+        pumpIntervalRef.current = setInterval(() => {
+            if (wordQueueRef.current.length === 0) {
+                clearInterval(pumpIntervalRef.current);
+                pumpIntervalRef.current = null;
+                console.log('La cola está vacía, paro el pump');
+                return;
+            }
+            const nextChar = wordQueueRef.current.shift();
+            console.log('🚀 Dispatch char:', JSON.stringify(nextChar), '| Quedan:', wordQueueRef.current.length);
+
+            setMessages(prev =>
+                prev.map((msg, i) =>
+                    i === prev.length - 1
+                        ? { ...msg, text: msg.text + nextChar }
+                        : msg
+                )
+            );
+        }, 100); // 100 ms por carácter
+    };
+
+    const stopWordPump = () => {
+        if (pumpIntervalRef.current) {
+            clearInterval(pumpIntervalRef.current);
+            pumpIntervalRef.current = null;
+        }
+        wordQueueRef.current = [];
+        console.log('Pump detenido y cola limpiada');
+    };
+    // —————————————————————————————
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // Cargar lista de conversaciones inicial
     const fetchConversations = async () => {
         setLoadingConversations(true);
         setError(null);
         try {
             const data = await getConversations();
             setConversations(data || []);
+            return data || [];
         } catch (err) {
             setError(`Error al cargar conversaciones: ${err.message}`);
+            return [];
         } finally {
             setLoadingConversations(false);
         }
     };
 
-    useEffect(() => {
-        fetchConversations();
-    }, []);
-
-    // Scroll al final cuando los mensajes cambian
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    // Limpiar el stream si el componente se desmonta
+    useEffect(() => { fetchConversations(); }, []);
+    useEffect(() => { scrollToBottom(); }, [messages]);
     useEffect(() => {
         return () => {
             streamControllerRef.current?.abort();
+            stopWordPump();
         };
     }, []);
 
     const handleSelectConversation = async (conversationId) => {
-        if (isStreaming) streamControllerRef.current?.abort();
+        if (isStreaming) {
+            streamControllerRef.current?.abort();
+            stopWordPump();
+        }
         setIsStreaming(false);
-
         setSelectedConversationId(conversationId);
         setLoadingMessages(true);
         setError(null);
         try {
             const messagesData = await getConversationMessages(conversationId);
-            // Mapear el formato de la BD al formato del estado de la UI
-            const formattedMessages = messagesData.map(msg => ({
+            const formatted = messagesData.map(msg => ({
                 text: msg.content,
-                sender: msg.role
+                sender: msg.role === 'user' ? 'user' : 'assistant'
             }));
-            setMessages(formattedMessages);
+            setMessages(formatted);
         } catch (err) {
             setError(`Error al cargar mensajes: ${err.message}`);
             setMessages([]);
@@ -78,51 +110,59 @@ const ChatPage = () => {
         if (!input.trim() || isStreaming) return;
 
         const userMessage = { text: input.trim(), sender: 'user' };
-        setMessages(prev => [...prev, userMessage]);
+        const isNewChat = !selectedConversationId;
+
+        if (isNewChat) {
+            setMessages([userMessage]);
+        } else {
+            setMessages(prev => [...prev, userMessage]);
+        }
+
         setInput('');
         setIsStreaming(true);
         setError(null);
 
-        // Añadir un placeholder para la respuesta del bot
+        // placeholder y reiniciar cola
         setMessages(prev => [...prev, { text: '', sender: 'assistant', streaming: true }]);
+        wordQueueRef.current = [];
 
         const payload = {
             message: userMessage.text,
-            conversationId: selectedConversationId
+            conversationId: selectedConversationId,
         };
 
         streamControllerRef.current = streamChat(payload, {
-            onOpen: () => console.log("Conexión de stream abierta."),
+            onOpen: () => console.log("Stream abierto."),
             onMessage: (data) => {
                 if (data.type === 'id') {
+                    console.log('Conversación nueva, id:', data.conversationId);
                     setSelectedConversationId(data.conversationId);
                 } else if (data.type === 'chunk' && data.content) {
-                    setMessages(prev => {
-                        const lastMsg = prev[prev.length - 1];
-                        if (lastMsg?.sender === 'assistant') {
-                            lastMsg.text += data.content;
-                            return [...prev.slice(0, -1), lastMsg];
-                        }
-                        return prev;
-                    });
+                    console.log('Chunk recibido del LLM:', data.content);
+                    // encolar char‑by‑char
+                    wordQueueRef.current.push(...data.content.split(''));
+                    startWordPump();
                 }
             },
             onError: (err) => {
                 setError(`Error de stream: ${err.message}`);
                 setIsStreaming(false);
+                stopWordPump();
             },
-            onClose: () => {
+            onClose: async () => {
                 setIsStreaming(false);
-                // Marcar el mensaje como completo
+                stopWordPump();
                 setMessages(prev => prev.map(msg => ({ ...msg, streaming: false })));
-                // Actualizar la lista de conversaciones para reflejar el nuevo título o fecha
-                fetchConversations();
+                await fetchConversations();
             }
         });
     };
 
     const handleNewChat = () => {
-        if (isStreaming) streamControllerRef.current?.abort();
+        if (isStreaming) {
+            streamControllerRef.current?.abort();
+            stopWordPump();
+        }
         setIsStreaming(false);
         setSelectedConversationId(null);
         setMessages([]);
@@ -142,9 +182,10 @@ const ChatPage = () => {
                 <aside className="chat-list-sidebar">
                     <button className='new-chat-button' onClick={handleNewChat}>+ Nueva Conversación</button>
                     <div className="chat-list-title">Conversaciones</div>
-                    {loadingConversations ? <div className="loading-indicator">Cargando...</div> :
-                        conversations.length > 0 ? (
-                            conversations.map((conv) => (
+                    {loadingConversations
+                        ? <div className="loading-indicator">Cargando...</div>
+                        : conversations.length > 0
+                            ? conversations.map(conv => (
                                 <button
                                     key={conv.id}
                                     className={`chat-item ${selectedConversationId === conv.id ? 'selected' : ''}`}
@@ -153,40 +194,37 @@ const ChatPage = () => {
                                     {conv.title}
                                 </button>
                             ))
-                        ) : (
-                            <div className="no-chats-message">No hay conversaciones.</div>
-                        )}
+                            : <div className="no-chats-message">No hay conversaciones.</div>
+                    }
                     {error && <div className="chat-list-error-message">{error}</div>}
                 </aside>
-
                 <section className="chat-main-content">
                     <div className="chat-messages-container">
-                        {loadingMessages ? <div className="loading-indicator">Cargando mensajes...</div> :
-                            messages.length > 0 ? (
-                                messages.map((msg, index) => (
-                                    <div key={index} className={`message-bubble ${msg.sender}`}>
+                        {loadingMessages
+                            ? <div className="loading-indicator">Cargando mensajes...</div>
+                            : messages.length > 0
+                                ? messages.map((msg, i) => (
+                                    <div key={i} className={`message-bubble ${msg.sender}`}>
                                         <div className="message-text">{msg.text}</div>
                                         {msg.streaming && <span className="blinking-cursor"></span>}
                                     </div>
                                 ))
-                            ) : (
-                                <div className="no-messages-placeholder">
+                                : <div className="no-messages-placeholder">
                                     Selecciona una conversación o empieza una nueva.
                                 </div>
-                            )}
+                        }
                         <div ref={messagesEndRef} />
                     </div>
-
                     <form className="chat-input-form" onSubmit={handleSendMessage}>
                         <textarea
                             className="chat-input-textarea"
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onInput={(e) => autoResize(e.target)}
+                            onChange={e => setInput(e.target.value)}
+                            onInput={e => autoResize(e.target)}
                             placeholder={isStreaming ? "Generando respuesta..." : "Escribe tu mensaje aquí..."}
                             rows={1}
                             disabled={isStreaming || loadingMessages}
-                            onKeyDown={(e) => {
+                            onKeyDown={e => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
                                     handleSendMessage(e);

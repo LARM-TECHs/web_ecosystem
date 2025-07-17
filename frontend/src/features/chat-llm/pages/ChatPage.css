@@ -156,6 +156,10 @@
   border-bottom-left-radius: 5px; /* Esquina inferior izquierda menos redondeada */
 }
 
+.assistant {
+  background-color: #acacad; /* Color para mensajes del asistente */
+}
+
 .message-bubble.bot.error { /* Estilo para mensajes de error del bot */
   background-color: #ff4d4d; /* Rojo más fuerte */
   color: white;
@@ -242,6 +246,13 @@
   height: 20px;
   animation: spin 1s linear infinite;
 }
+
+.message-text {
+  white-space: pre-wrap;    /* respeta saltos y espacios */
+  word-break: break-word;   /* envuelve texto largo */
+  display: inline-block;    /* que su ancho se ajuste al contenido */
+}
+
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
